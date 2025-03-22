@@ -33,7 +33,7 @@ authRouter.get('/logout', (req, res) => {
     if (err) {
       return res.status(500).json({ message: 'Error during logout' });
     }
-    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+    res.status(200).json({ message: 'Logged out successfully' });
   });
 });
 
