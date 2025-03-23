@@ -7,10 +7,10 @@ import expenseRouter from "./routes/expense";
 import userRouter from "./routes/user";
 import authRouter from "./routes/auth";
 import { authenticateJWT } from "./middleware/auth";
-
-const app = express();
+import incomeRouter from "./routes/income";
 
 const port = process.env.PORT || 3001;
+const app = express();
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
@@ -42,6 +42,7 @@ app.use(passport.session());
 app.use("/auth", authRouter);
 app.use("/user",authenticateJWT, userRouter);
 app.use("/expense",authenticateJWT, expenseRouter);
+app.use("/income",authenticateJWT, incomeRouter);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
