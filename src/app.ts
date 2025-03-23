@@ -41,6 +41,10 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.get("/", (req, res) => {
+  res.send("Welcome to the wealth ai api " + req.url);
+});
+
 // Routes
 app.use("/auth", authRouter);
 app.use("/user",authenticateJWT, userRouter);

@@ -39,6 +39,9 @@ app.use((0, express_session_1.default)({
 // Initialize Passport
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
+app.get("/", (req, res) => {
+    res.send("Welcome to the wealth ai api " + req.url);
+});
 // Routes
 app.use("/auth", auth_1.default);
 app.use("/user", auth_2.authenticateJWT, user_1.default);
