@@ -26,7 +26,7 @@ web:
   # More information: https://docs.platform.sh/create-apps/app-reference.html#web-commands
   commands:
     # The command to launch your app. If it terminates, it’s restarted immediately.
-    start: "node src/app.ts"
+    start: "node dist/app.js"
 
 # Information on the app's source code and operations that can be run on it.
 # More information: https://docs.platform.sh/create-apps/app-reference.html#source

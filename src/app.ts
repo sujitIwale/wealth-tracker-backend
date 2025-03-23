@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import session from "express-session";
 import cookieParser from "cookie-parser";
+import pConfig from "platformsh-config";
 import passport from "./config/passport";
 import expenseRouter from "./routes/expense";
 import userRouter from "./routes/user";
@@ -11,6 +12,8 @@ import incomeRouter from "./routes/income";
 
 const port = process.env.PORT || 3001;
 const app = express();
+
+const config = pConfig.config();
 
 app.use(cors({
     origin: process.env.FRONTEND_URL,
@@ -44,6 +47,6 @@ app.use("/user",authenticateJWT, userRouter);
 app.use("/expense",authenticateJWT, expenseRouter);
 app.use("/income",authenticateJWT, incomeRouter);
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(config.port, () => {
+  console.log(`Server is running on port ${config.port}`);
 });
