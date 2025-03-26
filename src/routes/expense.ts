@@ -153,4 +153,32 @@ expenseRouter.put("/update/:id", async (req: Request, res: Response) => {
   }
 })
 
+expenseRouter.delete("/delete/:id", async (req: Request, res: Response) => {
+  const response = new GenericResponse();
+
+  try {
+    const { id } = req.params;  
+
+    if(!req.user?.id) {
+      response.setStatus(ResponseStatus.FAILED);
+      response.setMessage("User not found");
+      res.status(400).json(response);
+      return;
+    } 
+
+    await prisma.expense.delete({
+      where: {
+        id: Number(id),
+        userId: req.user?.id,
+      },
+    })
+    response.setStatus(ResponseStatus.SUCCESS);
+    res.send(response);
+  } catch (error: unknown) {
+    response.setStatus(ResponseStatus.FAILED);
+    response.setMessage(error instanceof Error ? error.message : "");
+    res.status(400).send(response);
+  }
+})
+
 export default expenseRouter;
