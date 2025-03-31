@@ -2,6 +2,7 @@ import { GenericResponse } from "../utils/response";
 import { ResponseStatus } from "../types/response";
 import prisma from "../prisma";
 import { Request, Response, Router } from "express";
+import { expenseService } from "../services/expense.service";
 
 const expenseRouter = Router();
 
@@ -9,20 +10,22 @@ expenseRouter.get("/", async (req: Request, res: Response) => {
   const response = new GenericResponse();
 
   try {
-    const { limit, from, to, order } = req.query;
+    const { limit, from, to, order, giveSum } = req.query;
+    if(!req.user?.id) {
+      response.setStatus(ResponseStatus.FAILED);
+      response.setMessage("User not found");
+      res.status(400).json(response);
+      return;
+    }
 
-    const expenses = await prisma.expense.findMany({
-      where: {
-        userId: req.user?.id,
-        createdAt: {
-          gte: from ? new Date(from as string) : undefined,
-          lte: to ? new Date(to as string) : undefined,
-        },
-      },
-      orderBy: {
-        createdAt: order === "asc" ? "asc" : "desc",
-      },
-      take: limit ? parseInt(limit as string) : undefined,
+    const expenses = await expenseService.getExpenses({
+      userId: req.user?.id,
+      all: false,
+      from: from ? new Date(from as string) : undefined,
+      to: to ? new Date(to as string) : undefined,
+      limit: limit ? parseInt(limit as string) : undefined,
+      order: order as "asc" | "desc",
+      giveSum: giveSum as string,
     });
 
     response.setStatus(ResponseStatus.SUCCESS);

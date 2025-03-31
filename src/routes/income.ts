@@ -2,7 +2,38 @@ import { Router, Request, Response } from "express";
 import { GenericResponse } from "../utils/response";
 import { ResponseStatus } from "../types/response";
 import prisma from "../prisma";
+import incomeService from "../services/income.service";
 const incomeRouter = Router();
+
+incomeRouter.get("/", async (req: Request, res: Response) => {
+  const response = new GenericResponse();
+
+  try {
+    const { limit, from, to, order, giveSum } = req.query;
+
+    const incomes = await incomeService.getTotalIncomes(
+        {
+            userId: req.user?.id || "",
+            all: false,
+            from: from ? new Date(from as string) : undefined,
+            to: to ? new Date(to as string) : undefined,
+            giveSum: giveSum as string,
+            limit: limit ? parseInt(limit as string) : undefined,
+            order: order as "asc" | "desc"
+        }
+    );
+
+    response.setStatus(ResponseStatus.SUCCESS);
+    response.setData(incomes);
+    res.status(200).json(response);
+  } catch (error: unknown) {
+    response.setStatus(ResponseStatus.FAILED);
+    response.setMessage(
+      error instanceof Error ? error.message : "An unknown error occurred"
+    );
+    res.status(500).json(response);
+  }
+});
 
 incomeRouter.get("/:id", async (req: Request, res: Response) => {
   const response = new GenericResponse();
@@ -16,7 +47,7 @@ incomeRouter.get("/:id", async (req: Request, res: Response) => {
       },
     });
 
-    if(!income) {
+    if (!income) {
       response.setStatus(ResponseStatus.FAILED);
       response.setMessage("Income not found");
       res.status(404).json(response);
@@ -25,7 +56,6 @@ incomeRouter.get("/:id", async (req: Request, res: Response) => {
 
     response.setStatus(ResponseStatus.SUCCESS);
     response.setData(income);
-    
   } catch (error: unknown) {
     response.setStatus(ResponseStatus.FAILED);
     response.setMessage(
