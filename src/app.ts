@@ -10,6 +10,7 @@ import authRouter from "./routes/auth";
 import { authenticateJWT } from "./middleware/auth";
 import incomeRouter from "./routes/income";
 import dashboardRouter from "./routes/dashboard";
+import importRouter from "./routes/import";
 
 const port = process.env.PORT || 3001;
 const app = express();
@@ -52,6 +53,7 @@ app.use("/user",authenticateJWT, userRouter);
 app.use("/expense",authenticateJWT, expenseRouter);
 app.use("/income",authenticateJWT, incomeRouter);
 app.use("/dashboard",authenticateJWT, dashboardRouter);
+app.use("/import",authenticateJWT,importRouter);
 
 app.listen(config.port, () => {
   console.log(`Server is running on port ${config.port}`);

@@ -47,15 +47,35 @@ model Income {
 }
 
 model User {
-  id             String    @id @default(uuid())
-  email          String    @unique
-  name           String?
-  googleId       String?   @unique
-  profilePicture String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  currency       String?
-  onboarded      Boolean   @default(false)
-  expenses       Expense[]
-  incomes        Income[]
+  id                   String                @id @default(uuid())
+  email                String                @unique
+  name                 String?
+  googleId             String?               @unique
+  profilePicture       String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  currency             String?
+  onboarded            Boolean               @default(false)
+  expenses             Expense[]
+  incomes              Income[]
+  importedTransactions ImportedTransaction[]
+}
+
+model ImportedTransaction {
+  id          Int             @id @default(autoincrement())
+  amount      Int
+  date        DateTime
+  type        TransactionType
+  name        String?
+  toAccount   String?
+  fromAccount String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
 }
