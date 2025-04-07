@@ -3,6 +3,7 @@ import { ImportedTransactionBase } from "../types/import";
 import fs from "fs";
 import csv from "csv-parser";
 import xlsx from "xlsx";
+import { Categories, Category, foodExpenseServices, otherExpenseServices, shoppingExpenseServices, travelExpenseServices } from "../constants/expense";
 
 export const processCSV = (
   filePath: string
@@ -32,6 +33,7 @@ export const processCSV = (
               typeof row["Debit"] === "number"
                 ? TransactionType.DEBIT
                 : TransactionType.CREDIT,
+            category: getTransactionCategory(row["Particulars"]),
           });
         }
       })
@@ -79,6 +81,7 @@ export const processXLSX = (filePath: string): ImportedTransactionBase[] => {
                   (particularsIndex !== -1 ? row[particularsIndex] || "" : ""),
       amount: 0,
       type: TransactionType.DEBIT,
+      category: getTransactionCategory(row[particularsIndex] || ""),
     };
 
     // Handle debit and credit amounts
@@ -103,3 +106,21 @@ export const processXLSX = (filePath: string): ImportedTransactionBase[] => {
   fs.unlinkSync(filePath); // Delete file after processing
   return transactions;
 };
+
+export const getTransactionCategory = (toAccount: string) => {
+  let category: keyof typeof Categories = Categories.other.id;
+   toAccount = toAccount?.toLowerCase();
+  if(toAccount) {
+    if (travelExpenseServices.find((service) => toAccount.includes(service))) {
+      category = Categories.transportation.id;
+    } else if (foodExpenseServices.find((service) => toAccount.includes(service))) {
+      category = Categories.food.id;
+    } else if (shoppingExpenseServices.find((service) => toAccount.includes(service))) {
+      category = Categories.shopping.id;
+    } else if (otherExpenseServices.find((service) => toAccount.includes(service))) {
+      category = Categories.other.id;
+    }
+  }
+
+  return category;
+}

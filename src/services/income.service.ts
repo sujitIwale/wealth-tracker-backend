@@ -1,3 +1,4 @@
+import { ImportedTransaction } from "@prisma/client";
 import prisma from "../prisma";
 
 const incomeService = {
@@ -59,6 +60,18 @@ const incomeService = {
     }),
       sum,
     };
+  },
+  createIncomeFromImportedTransaction: async (importedTransactions: ImportedTransaction[]) => {
+    return await prisma.income.createMany({
+      data: importedTransactions.map(transaction => ({
+        userId: transaction.userId,
+        amount: transaction.amount,
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+        name: transaction.name || "",
+        source: transaction.fromAccount || "",
+      }))
+    })
   },
 };
 

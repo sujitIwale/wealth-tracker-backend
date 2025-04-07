@@ -69,6 +69,7 @@ model ImportedTransaction {
   name        String?
   toAccount   String?
   fromAccount String?
+  category    String?         @default("other")
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   userId      String

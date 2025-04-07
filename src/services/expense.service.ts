@@ -1,3 +1,4 @@
+import { ImportedTransaction } from "@prisma/client";
 import prisma from "../prisma";
 
 export const expenseService = {
@@ -59,5 +60,18 @@ export const expenseService = {
       }),
       sum,
     };
+  },
+  createExpenseFromImportedTransaction: async (importedTransactions: ImportedTransaction[]) => {
+    return await prisma.expense.createMany({
+      data: importedTransactions.map(transaction => ({
+        userId: transaction.userId,
+        amount: transaction.amount,
+        createdAt: transaction.date,
+        updatedAt: transaction.updatedAt,
+        name: transaction.name || "",
+        category: transaction.category || "",
+        comment: transaction.toAccount || "",
+      })),
+    });
   },
 };

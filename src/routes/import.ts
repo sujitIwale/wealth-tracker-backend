@@ -6,6 +6,9 @@ import path from "path";
 import { processCSV, processXLSX } from "../utils/import";
 import { ImportedTransactionBase } from "../types/import";
 import importService from "../services/import.service";
+import { expenseService } from "../services/expense.service";
+import incomeService from "../services/income.service";
+import { GenericResponse } from "../utils/response";
 
 const importRouter = Router();
 
@@ -45,16 +48,55 @@ importRouter.post(
         return;
       }
 
-      const importedTransactions = await importService.handleImport(transactions, userId);
-
+      const importedTransactions = await importService.handleImport(
+        transactions,
+        userId
+      );
+      const separatedTransactions =
+        importService.separateTransactions(importedTransactions);
       res.status(200).json({
         status: ResponseStatus.SUCCESS,
-        data: importedTransactions,
+        data: separatedTransactions,
         message: "Transactions imported successfully",
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       res.status(500).json({ message: "Error processing file", error });
+    }
+  }
+);
+
+importRouter.post(
+  "/transactions/accept/:type",
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const response = new GenericResponse();
+
+    if (!userId) {
+      response.setStatus(ResponseStatus.FAILED);
+      response.setMessage("Unauthorized");
+      res.status(401).json(response);
+      return;
+    }
+
+    const type = req.params.type;
+    const transactions = req.body.transactions;
+
+    try {
+      if (type === "credit") {
+        await incomeService.createIncomeFromImportedTransaction(transactions);
+      } else if (type === "debit") {
+        await expenseService.createExpenseFromImportedTransaction(transactions);
+      }
+
+      response.setStatus(ResponseStatus.SUCCESS);
+      response.setMessage("Transactions accepted successfully");
+      res.status(200).json(response);
+    } catch (error) {
+      console.log(error);
+      response.setStatus(ResponseStatus.FAILED);
+      response.setMessage("Error accepting transactions");
+      res.status(500).json(response);
     }
   }
 );
