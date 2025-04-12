@@ -7,23 +7,27 @@ const response_1 = require("../utils/response");
 const response_2 = require("../types/response");
 const prisma_1 = __importDefault(require("../prisma"));
 const express_1 = require("express");
+const expense_service_1 = require("../services/expense.service");
+const user_service_1 = require("../services/user.service");
 const expenseRouter = (0, express_1.Router)();
 expenseRouter.get("/", async (req, res) => {
     const response = new response_1.GenericResponse();
     try {
-        const { limit, from, to, order } = req.query;
-        const expenses = await prisma_1.default.expense.findMany({
-            where: {
-                userId: req.user?.id,
-                createdAt: {
-                    gte: from ? new Date(from) : undefined,
-                    lte: to ? new Date(to) : undefined,
-                },
-            },
-            orderBy: {
-                createdAt: order === "asc" ? "asc" : "desc",
-            },
-            take: limit ? parseInt(limit) : undefined,
+        const { limit, from, to, order, giveSum } = req.query;
+        if (!req.user?.id) {
+            response.setStatus(response_2.ResponseStatus.FAILED);
+            response.setMessage("User not found");
+            res.status(400).json(response);
+            return;
+        }
+        const expenses = await expense_service_1.expenseService.getExpenses({
+            userId: req.user?.id,
+            all: false,
+            from: from ? new Date(from) : undefined,
+            to: to ? new Date(to) : undefined,
+            limit: limit ? parseInt(limit) : undefined,
+            order: order,
+            giveSum: giveSum,
         });
         response.setStatus(response_2.ResponseStatus.SUCCESS);
         response.setData(expenses);
@@ -100,6 +104,9 @@ expenseRouter.post("/create", async (req, res) => {
                 createdAt: date ? new Date(date) : new Date(),
             },
         });
+        if (!req.user?.addedTransaction) {
+            await user_service_1.userService.markTransactionAdded(req.user?.id || "");
+        }
         response.setStatus(response_2.ResponseStatus.SUCCESS);
         response.setData(expense);
         res.send(response);
@@ -136,6 +143,31 @@ expenseRouter.put("/update/:id", async (req, res) => {
         });
         response.setStatus(response_2.ResponseStatus.SUCCESS);
         response.setData(expense);
+        res.send(response);
+    }
+    catch (error) {
+        response.setStatus(response_2.ResponseStatus.FAILED);
+        response.setMessage(error instanceof Error ? error.message : "");
+        res.status(400).send(response);
+    }
+});
+expenseRouter.delete("/delete/:id", async (req, res) => {
+    const response = new response_1.GenericResponse();
+    try {
+        const { id } = req.params;
+        if (!req.user?.id) {
+            response.setStatus(response_2.ResponseStatus.FAILED);
+            response.setMessage("User not found");
+            res.status(400).json(response);
+            return;
+        }
+        await prisma_1.default.expense.delete({
+            where: {
+                id: Number(id),
+                userId: req.user?.id,
+            },
+        });
+        response.setStatus(response_2.ResponseStatus.SUCCESS);
         res.send(response);
     }
     catch (error) {

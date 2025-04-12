@@ -7,7 +7,32 @@ const express_1 = require("express");
 const response_1 = require("../utils/response");
 const response_2 = require("../types/response");
 const prisma_1 = __importDefault(require("../prisma"));
+const income_service_1 = __importDefault(require("../services/income.service"));
+const user_service_1 = require("../services/user.service");
 const incomeRouter = (0, express_1.Router)();
+incomeRouter.get("/", async (req, res) => {
+    const response = new response_1.GenericResponse();
+    try {
+        const { limit, from, to, order, giveSum } = req.query;
+        const incomes = await income_service_1.default.getTotalIncomes({
+            userId: req.user?.id || "",
+            all: false,
+            from: from ? new Date(from) : undefined,
+            to: to ? new Date(to) : undefined,
+            giveSum: giveSum,
+            limit: limit ? parseInt(limit) : undefined,
+            order: order
+        });
+        response.setStatus(response_2.ResponseStatus.SUCCESS);
+        response.setData(incomes);
+        res.status(200).json(response);
+    }
+    catch (error) {
+        response.setStatus(response_2.ResponseStatus.FAILED);
+        response.setMessage(error instanceof Error ? error.message : "An unknown error occurred");
+        res.status(500).json(response);
+    }
+});
 incomeRouter.get("/:id", async (req, res) => {
     const response = new response_1.GenericResponse();
     try {
@@ -53,6 +78,9 @@ incomeRouter.post("/create", async (req, res) => {
                 createdAt: date ? new Date(date) : new Date(),
             },
         });
+        if (!req.user?.addedTransaction) {
+            await user_service_1.userService.markTransactionAdded(req.user?.id || "");
+        }
         response.setStatus(response_2.ResponseStatus.SUCCESS);
         response.setMessage("Income created successfully");
         response.setData(income);

@@ -14,6 +14,8 @@ const user_1 = __importDefault(require("./routes/user"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const auth_2 = require("./middleware/auth");
 const income_1 = __importDefault(require("./routes/income"));
+const dashboard_1 = __importDefault(require("./routes/dashboard"));
+const import_1 = __importDefault(require("./routes/import"));
 const port = process.env.PORT || 3001;
 const app = (0, express_1.default)();
 const config = platformsh_config_1.default.config();
@@ -47,6 +49,8 @@ app.use("/auth", auth_1.default);
 app.use("/user", auth_2.authenticateJWT, user_1.default);
 app.use("/expense", auth_2.authenticateJWT, expense_1.default);
 app.use("/income", auth_2.authenticateJWT, income_1.default);
+app.use("/dashboard", auth_2.authenticateJWT, dashboard_1.default);
+app.use("/import", auth_2.authenticateJWT, import_1.default);
 app.listen(config.port, () => {
     console.log(`Server is running on port ${config.port}`);
 });
