@@ -3,6 +3,7 @@ import { GenericResponse } from "../utils/response";
 import { ResponseStatus } from "../types/response";
 import prisma from "../prisma";
 import incomeService from "../services/income.service";
+import { userService } from "../services/user.service";
 const incomeRouter = Router();
 
 incomeRouter.get("/", async (req: Request, res: Response) => {
@@ -88,6 +89,10 @@ incomeRouter.post("/create", async (req: Request, res: Response) => {
         createdAt: date ? new Date(date) : new Date(),
       },
     });
+
+    if(!req.user?.addedTransaction) {
+      await userService.markTransactionAdded(req.user?.id || "");
+    }
 
     response.setStatus(ResponseStatus.SUCCESS);
     response.setMessage("Income created successfully");

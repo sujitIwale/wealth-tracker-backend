@@ -3,6 +3,7 @@ import { ResponseStatus } from "../types/response";
 import prisma from "../prisma";
 import { Request, Response, Router } from "express";
 import { expenseService } from "../services/expense.service";
+import { userService } from "../services/user.service";
 
 const expenseRouter = Router();
 
@@ -108,6 +109,11 @@ expenseRouter.post("/create", async (req: Request, res: Response) => {
         createdAt: date ? new Date(date) : new Date(),
       },
     });
+
+    if(!req.user?.addedTransaction) {
+      await userService.markTransactionAdded(req.user?.id || "");
+    }
+
     response.setStatus(ResponseStatus.SUCCESS);
     response.setData(expense);
     res.send(response);

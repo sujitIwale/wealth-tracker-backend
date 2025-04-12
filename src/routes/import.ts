@@ -9,6 +9,7 @@ import importService from "../services/import.service";
 import { expenseService } from "../services/expense.service";
 import incomeService from "../services/income.service";
 import { GenericResponse } from "../utils/response";
+import { userService } from "../services/user.service";
 
 const importRouter = Router();
 
@@ -87,6 +88,10 @@ importRouter.post(
         await incomeService.createIncomeFromImportedTransaction(transactions);
       } else if (type === "debit") {
         await expenseService.createExpenseFromImportedTransaction(transactions);
+      }
+
+      if(!req.user?.addedTransaction) {
+        await userService.markTransactionAdded(req.user?.id || "");
       }
 
       response.setStatus(ResponseStatus.SUCCESS);
